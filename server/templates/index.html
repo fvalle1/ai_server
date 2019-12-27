@@ -1,0 +1,20 @@
+<head>
+</head>
+<body>
+  <h1>Classifier</h1>
+<div style="width=95%">
+<button onclick="window.location.href='/trigger'">Shot and classify</button>
+<div>
+<div style="width=80%">
+  <h2>Results</h2>
+<!--<img src="{{url_for('static', filename='input.jpg')}}"/>-->
+<img style="width:60%;margin:auto;float:left;" src="/image"/>
+<div style="width:40%;height:40%;display:block;margin:auto;float:right;">
+  <p style="font-size:24px;padding-top:8%;padding-left:5%;">{{class0}}</p>
+  <p style="font-size:24px;padding-top:5%;padding-left:5%;">{{class1}}</p>
+  <p style="font-size:24px;padding-top:5%;padding-left:5%;">{{class2}}</p>
+  <p style="font-size:24px;padding-top:5%;padding-left:5%;">{{class3}}</p>
+  <p style="font-size:24px;padding-top:5%;padding-left:5%;">{{class4}}</p>
+</div>
+</div>
+</body>
