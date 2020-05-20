@@ -17,7 +17,7 @@ limitations under the License.
 
 from classify import classifier
 import cv2
-from flask import Flask, render_template, make_response
+from flask import Flask, render_template, make_response, Response
 app = Flask(__name__)
 
 model = classifier()
@@ -43,6 +43,40 @@ def image():
     response = make_response(buffer.tobytes())
     response.headers['Content-Type'] = 'image/png'
     return response
+
+
+
+def generator():
+    import io
+    global model
+    while True:
+        frame = model.shot()
+        classes = model.classify(frame)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        bottomLeftCornerOfText = (10,250)
+        fontScale  = 1
+        fontColor = (50,50,255)
+        lineType = 2
+        cv2.putText(frame,classes[0], 
+          bottomLeftCornerOfText, 
+          font, 
+          fontScale,
+          fontColor,
+          lineType)
+        encode_return_code, image_buffer = cv2.imencode('.jpg', frame)
+        io_buf = io.BytesIO(image_buffer)
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + io_buf.read() + b'\r\n')
+
+@app.route("/video")
+def video():
+    return Response(generator(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route("/live")
+def live():
+	return render_template("live.html")
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
