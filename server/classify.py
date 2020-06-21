@@ -14,11 +14,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-"""
-The original work was modified by Filippo Valle
-"""
-
 from __future__ import print_function
 import sys
 import os
@@ -31,10 +26,12 @@ from time import time
 from openvino.inference_engine import IENetwork, IECore
 import json
 from telepyth import TelepythClient
+from model import model
 
-class classifier:
+class classifier(model):
     def __init__(self):
-        self.model = 'inception-v4.xml'
+        super()
+        self.model = '/home/pi/inception/inception-v4.xml'
         self.device = 'MYRIAD'
         self.number_top = 10
         self.input=['input.jpg']
@@ -69,7 +66,7 @@ class classifier:
             self.labels_map=json.load(file)
 
     def shot(self):
-        log.info('Shoting')
+        #log.info('Shoting')
         # capture camera
         cap = cv2.VideoCapture(0)
 
@@ -81,14 +78,14 @@ class classifier:
         ret, frame = cap.read()
         # Display the resulting frame
         #Save the frame to an image file.
-        cv.imwrite('input.jpg', frame)
+        #cv.imwrite('input.jpg', frame)
 
         # When everything done, release the capture
         cap.release()
         cv2.destroyAllWindows()
         return frame
 
-    def telegram_send(self, fig=None, text=None, key='KEY'):
+    def telegram_send(self, fig=None, text=None, key='8884910787382816523'):
         global tp
         tp = TelepythClient(key)
         if fig is not None:
@@ -103,40 +100,40 @@ class classifier:
         images = np.ndarray(shape=(n, c, h, w))
         #image = cv2.imread(self.input[0])
         if image.shape[:-1] != (h, w):
-            log.warning("Image {} is resized from {} to {}".format(self.input[0], image.shape[:-1], (h, w)))
+            #log.warning("Image {} is resized from {} to {}".format(self.input[0], image.shape[:-1], (h, w)))
             image = cv2.resize(image, (w, h))
             image = image.transpose((2, 0, 1))  # Change data layout from HWC to CHW
         images[0] = image
-        log.info("Batch size is {}".format(n))
+        #log.info("Batch size is {}".format(n))
 
         # Start sync inference
-        log.info("Starting inference in synchronous mode")
+        #log.info("Starting inference in synchronous mode")
         res = self.exec_net.infer(inputs={self.input_blob: images})
 
         # Processing output blob
-        log.info("Processing output blob")
+        #log.info("Processing output blob")
         res = res[self.out_blob]
-        log.info("Top {} results: ".format(self.number_top))
+        #log.info("Top {} results: ".format(self.number_top))
 
         classid_str = "classid"
         probability_str = "probability"
         for i, probs in enumerate(res):
             probs = np.squeeze(probs)
             top_ind = np.argsort(probs)[-self.number_top:][::-1]
-        print("Image {}\n".format(self.input[i]))
-        print(classid_str, probability_str)
-        print("{} {}".format('-' * len(classid_str), '-' * len(probability_str)))
+        #print("Image {}\n".format(self.input[i]))
+        #print(classid_str, probability_str)
+        #print("{} {}".format('-' * len(classid_str), '-' * len(probability_str)))
         for id in top_ind:
             det_label = self.labels_map[str(id)][1] if self.labels_map else "{}".format(id)
             label_length = len(det_label)
             space_num_before = (len(classid_str) - label_length) // 2
             space_num_after = len(classid_str) - (space_num_before + label_length) + 2
             space_num_before_prob = (len(probability_str) - len(str(probs[id]))) // 2
-            print("{}{}\t{}{}{:.7f}".format(' ' * space_num_before, det_label,
-            ' ' * space_num_after, ' ' * space_num_before_prob,
-            probs[id]))
+            #print("{}{}\t{}{}{:.7f}".format(' ' * space_num_before, det_label,
+            #' ' * space_num_after, ' ' * space_num_before_prob,
+            #probs[id]))
 
-        print("\n")
+        #print("\n")
         #telegram_send(text="%s with p: %f"%(self.labels_map[str(0)][1], probs[0]))
         return ["{}{}\t{}{}{:.7f}".format(' ' * space_num_before, self.labels_map[str(top_ind[0])][1] if self.labels_map else "{}".format(top_ind[0]),
         ' ' * space_num_after, ' ' * space_num_before_prob,
@@ -154,6 +151,21 @@ class classifier:
         ' ' * space_num_after, ' ' * space_num_before_prob,
         probs[top_ind[4]])
         ]
+
+    def process(self, frame):
+        classes = self.classify(frame)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        bottomLeftCornerOfText = (10,250)
+        fontScale  = 1
+        fontColor = (50,50,255)
+        lineType = 2
+        cv2.putText(frame,classes[0],
+          bottomLeftCornerOfText,
+          font,
+          fontScale,
+          fontColor,
+          lineType)
+        return frame
 
 
 

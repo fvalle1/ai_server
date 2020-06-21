@@ -1,26 +1,11 @@
-"""
-Copyright (C) 2019 Filippo Valle
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
-
-
 from classify import classifier
+from face_recogniser import face_recogniser
 import cv2
 from flask import Flask, render_template, make_response, Response
 app = Flask(__name__)
 
 model = classifier()
+#model = face_recogniser()
 
 @app.route("/")
 def server():
@@ -32,6 +17,7 @@ def click():
     classes = model.classify(model.shot())
     return render_template("index.html", message="classified",class0=classes[0], class1=classes[1],class2=classes[2],class3=classes[3],class4=classes[4])
 
+
 @app.route("/shot")
 def shot():
     model.shot()
@@ -39,7 +25,7 @@ def shot():
 
 @app.route("/image")
 def image():
-    retval, buffer = cv2.imencode('.jpg', cv2.imread("input.jpg"))
+    retval, buffer = cv2.imencode('.jpg', cv2.imread("/home/pi/inception/server/input.jpg"))
     response = make_response(buffer.tobytes())
     response.headers['Content-Type'] = 'image/png'
     return response
@@ -49,29 +35,18 @@ def image():
 def generator():
     import io
     global model
+    cap = cv2.VideoCapture(0)
     while True:
-        frame = model.shot()
-        classes = model.classify(frame)
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        bottomLeftCornerOfText = (10,250)
-        fontScale  = 1
-        fontColor = (50,50,255)
-        lineType = 2
-        cv2.putText(frame,classes[0], 
-          bottomLeftCornerOfText, 
-          font, 
-          fontScale,
-          fontColor,
-          lineType)
+        ret, frame = cap.read()
+        frame = model.process(frame)
         encode_return_code, image_buffer = cv2.imencode('.jpg', frame)
         io_buf = io.BytesIO(image_buffer)
-        yield (b'--frame\r\n'
+        yield (b'--frame\r\n'+
                b'Content-Type: image/jpeg\r\n\r\n' + io_buf.read() + b'\r\n')
 
 @app.route("/video")
 def video():
-    return Response(generator(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(generator(),mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route("/live")
 def live():
