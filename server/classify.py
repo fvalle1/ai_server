@@ -47,7 +47,7 @@ class classifier(model):
         ie = IECore()
         # Read IR
         log.info("Loading network files:\n\t{}\n\t{}".format(model_xml, model_bin))
-        self.net = IENetwork(model=model_xml, weights=model_bin)
+        self.net = ie.read_network((model=model_xml, weights=model_bin)
 
         assert len(self.net.inputs.keys()) == 1, "Sample supports only single input topologies"
         assert len(self.net.outputs) == 1, "Sample supports only single output topologies"
