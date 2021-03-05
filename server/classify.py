@@ -31,7 +31,7 @@ from model import model
 class classifier(model):
     def __init__(self):
         super()
-        self.model = '/home/pi/inception/inception-v4.xml'
+        self.model = 'inception-v4.xml'
         self.device = 'MYRIAD'
         self.number_top = 10
         self.input=['input.jpg']
@@ -47,7 +47,7 @@ class classifier(model):
         ie = IECore()
         # Read IR
         log.info("Loading network files:\n\t{}\n\t{}".format(model_xml, model_bin))
-        self.net = ie.read_network((model=model_xml, weights=model_bin)
+        self.net = ie.read_network(model=model_xml, weights=model_bin)
 
         assert len(self.net.inputs.keys()) == 1, "Sample supports only single input topologies"
         assert len(self.net.outputs) == 1, "Sample supports only single output topologies"
@@ -170,4 +170,4 @@ class classifier(model):
 
 
 if __name__ == '__main__':
-    sys.exit(classify() or 0)
+    sys.exit(classifier() or 0)

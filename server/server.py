@@ -25,7 +25,7 @@ def shot():
 
 @app.route("/image")
 def image():
-    retval, buffer = cv2.imencode('.jpg', cv2.imread("/home/pi/inception/server/input.jpg"))
+    retval, buffer = cv2.imencode('.jpg', cv2.imread("input.jpg"))
     response = make_response(buffer.tobytes())
     response.headers['Content-Type'] = 'image/png'
     return response
