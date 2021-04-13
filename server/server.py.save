@@ -1,0 +1,42 @@
+from classify import classifier
+import cv2
+from flask import Flask, render_template, make_response
+app = Flask(__name__)
+
+model = classifier()
+
+@app.route("/")
+def server():
+    message='Hello raspberry'
+    return render_template("index.html", message=message)
+
+@app.route("/trigger")
+def click():
+    classes = model.classify(model.shot())
+    return render_template("index.html", message="classified",class0=classes[0], class1=classes[1],class2=classes[2],class3=classes[3],class4=classes[4])
+
+@app.route("/shot")
+def shot():
+    model.shot()
+    return render_template("index.html", message='shot')
+
+@app.route("/image")
+def image():
+    retval, buffer = cv2.imencode('.jpg', cv2.imread("/home/pi/inception/server/input.jpg"))
+    response = make_response(buffer.tobytes())
+    response.headers['Content-Type'] = 'image/png'
+    return response
+
+
+def generator():
+    while True:
+        model.shot
+        yield 
+
+@app.route("/live")
+def live():
+    return Response(generator(),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0")

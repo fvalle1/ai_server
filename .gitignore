@@ -1,0 +1,15 @@
+*.xml
+*.bin
+*.mapping
+
+*/__pycache__/
+.DS_Store
+._yolo
+._server
+
+.ipynb_checkpoints/
+.vscode/
+
+*.jpg
+
+yolo/
